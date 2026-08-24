@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script type="importmap">
+  {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}
+</script>
 <style>
   :root{
     --bg:#0a0814;
@@ -277,6 +281,28 @@
     color:var(--text-dim); font-size:13px;
   }
   footer.site-footer .copyright{font-size:11.5px; margin-top:6px; color:var(--text-dim); opacity:.7;}
+
+  /* ---------- three.js upgrades ---------- */
+  #neuralCanvas{opacity:.95;}
+  .blob{opacity:.22;}
+
+  /* 3D tilt cards */
+  .proj-card,.skill-card,.cert-card,.fact-card{position:relative;}
+  .tilt{will-change:transform;}
+  .tilt.tilting{transition:transform .06s linear !important;}
+  .proj-card::after,.skill-card::after,.cert-card::after,.fact-card::after{
+    content:''; position:absolute; inset:0; border-radius:inherit;
+    background:radial-gradient(280px circle at var(--gx,50%) var(--gy,50%), rgba(139,92,246,.15), transparent 65%);
+    opacity:0; transition:opacity .25s ease; pointer-events:none;
+  }
+  .proj-card:hover::after,.skill-card:hover::after,.cert-card:hover::after,.fact-card:hover::after{opacity:1;}
+
+  /* scroll reveal */
+  .reveal{opacity:0; transform:translateY(26px); transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
 </style>
 </head>
 <body>
@@ -620,48 +646,7 @@
   }
   step();
 
-  // neural canvas (ambient, hero only)
-  var canvas = document.getElementById('neuralCanvas');
-  var ctx = canvas.getContext('2d');
-  var hero = canvas.parentElement;
-  var nodes = [];
-  function resize(){ canvas.width = hero.clientWidth; canvas.height = hero.clientHeight; }
-  function init(){
-    nodes = [];
-    var count = Math.min(50, Math.floor((canvas.width*canvas.height)/24000));
-    for(var i=0;i<count;i++){
-      nodes.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, vx:(Math.random()-0.5)*0.22, vy:(Math.random()-0.5)*0.22, r:Math.random()*1.5+0.7});
-    }
-  }
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    nodes.forEach(function(n){
-      n.x+=n.vx; n.y+=n.vy;
-      if(n.x<0||n.x>canvas.width) n.vx*=-1;
-      if(n.y<0||n.y>canvas.height) n.vy*=-1;
-    });
-    for(var i=0;i<nodes.length;i++){
-      for(var j=i+1;j<nodes.length;j++){
-        var a=nodes[i], b=nodes[j];
-        var d=Math.hypot(a.x-b.x, a.y-b.y);
-        if(d<110){
-          ctx.strokeStyle='rgba(139,92,246,'+(0.18*(1-d/110))+')';
-          ctx.lineWidth=1;
-          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-        }
-      }
-    }
-    nodes.forEach(function(n,i){
-      ctx.fillStyle = i%2===0 ? 'rgba(34,211,238,0.6)' : 'rgba(139,92,246,0.6)';
-      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!reduced){
-    resize(); init(); draw();
-    window.addEventListener('resize', function(){ resize(); init(); });
-  }
+  // hero background upgraded to a WebGL scene — see three-scene.js
 
   // convert an embedded data: URI to a Blob (avoids browsers blocking direct
   // top-level navigation to data: URLs, which is what broke certificate opening)
@@ -709,5 +694,6 @@
   });
 })();
 </script>
+<script type="module" src="./three-scene.js"></script>
 </body>
 </html>
