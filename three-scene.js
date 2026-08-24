@@ -1,216 +1,56 @@
 import * as THREE from 'three';
 
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const NARROW = Math.min(screen.width, screen.height) < 640;
+const NARROW = Math.min(screen.width, screen.height) < 700;
 
-function initFallback(){
-  const canvas = document.getElementById('neuralCanvas');
-  if(!canvas || !canvas.getContext) return;
-  const ctx = canvas.getContext('2d');
-  let nodes = [];
-  const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-  const init = () => {
-    nodes = [];
-    const count = Math.min(70, Math.floor((canvas.width * canvas.height) / 22000));
-    for(let i = 0; i < count; i++){
-      nodes.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.22,
-        vy: (Math.random() - 0.5) * 0.22,
-        r: Math.random() * 1.5 + 0.7
-      });
-    }
-  };
-  const draw = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    nodes.forEach(n => {
-      n.x += n.vx; n.y += n.vy;
-      if(n.x < 0 || n.x > canvas.width) n.vx *= -1;
-      if(n.y < 0 || n.y > canvas.height) n.vy *= -1;
-    });
-    for(let i = 0; i < nodes.length; i++){
-      for(let j = i + 1; j < nodes.length; j++){
-        const a = nodes[i], b = nodes[j];
-        const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if(d < 110){
-          ctx.strokeStyle = 'rgba(139,92,246,' + (0.15 * (1 - d / 110)).toFixed(3) + ')';
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-        }
-      }
-    }
-    nodes.forEach((n, i) => {
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(34,211,238,0.5)' : 'rgba(139,92,246,0.5)';
-      ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  };
-  resize(); init();
-  if(!REDUCED){
-    draw();
-    window.addEventListener('resize', () => { resize(); init(); });
-  }
+function spriteTexture(stops){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 128;
+  const x = cv.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  stops.forEach(s => g.addColorStop(s[0], s[1]));
+  x.fillStyle = g;
+  x.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(cv);
 }
 
-function buildScene(){
+function initBackground(){
   const canvas = document.getElementById('neuralCanvas');
+  if(!canvas) return;
   let renderer;
   try{
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-  }catch(err){
-    initFallback();
-    return;
-  }
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+  }catch(err){ return; }
   renderer.setClearColor(0x000000, 0);
-
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 200);
-  camera.position.set(0, 1.6, 17);
-  camera.lookAt(0, 0, 0);
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
+  camera.position.z = 20;
 
-  const uTime = { value: 0 };
-
-  function ribbonMat(c1, c2, c3, opacity, phase){
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        uTime,
-        uPhase: { value: phase },
-        uOpacity: { value: opacity },
-        c1: { value: new THREE.Color(c1) },
-        c2: { value: new THREE.Color(c2) },
-        c3: { value: new THREE.Color(c3) }
-      },
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-      vertexShader: `
-        uniform float uTime;
-        uniform float uPhase;
-        varying vec2 vUv;
-        varying float vElev;
-        void main(){
-          vUv = uv;
-          vec3 p = position;
-          float w1 = sin(p.x * 0.22 + uTime * 0.32 + uPhase);
-          float w2 = sin(p.x * 0.09 - uTime * 0.21 + uPhase * 1.7);
-          float w3 = cos(p.y * 0.30 + uTime * 0.26 + uPhase * 0.6);
-          p.z += w1 * 1.9 + w2 * 2.6 + w3 * 1.1;
-          vElev = w1 * 0.5 + w2 * 0.5;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-        }`,
-      fragmentShader: `
-        uniform float uTime;
-        uniform float uPhase;
-        uniform float uOpacity;
-        uniform vec3 c1;
-        uniform vec3 c2;
-        uniform vec3 c3;
-        varying vec2 vUv;
-        varying float vElev;
-        void main(){
-          vec3 col = mix(c1, c2, smoothstep(0.0, 1.0, vUv.x));
-          col = mix(col, c3, 0.5 + 0.5 * sin(vUv.x * 3.14159 + uTime * 0.15 + uPhase));
-          col += vElev * 0.06;
-          float fadeY = smoothstep(0.0, 0.22, vUv.y) * smoothstep(1.0, 0.78, vUv.y);
-          float fadeX = smoothstep(0.0, 0.07, vUv.x) * smoothstep(1.0, 0.93, vUv.x);
-          float streak = 0.78 + 0.22 * sin(vUv.x * 19.0 + vUv.y * 4.0 + uTime * 0.2 + uPhase);
-          float a = uOpacity * fadeY * fadeX * streak;
-          if(a < 0.004) discard;
-          gl_FragColor = vec4(col, a);
-        }`
-    });
+  const dot = spriteTexture([[0, 'rgba(255,255,255,1)'], [0.4, 'rgba(255,255,255,0.4)'], [1, 'rgba(255,255,255,0)']]);
+  const STAR_N = NARROW ? 260 : 620;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(STAR_N * 3);
+  for(let i = 0; i < STAR_N; i++){
+    pos[i * 3] = (Math.random() * 2 - 1) * 46;
+    pos[i * 3 + 1] = (Math.random() * 2 - 1) * 27;
+    pos[i * 3 + 2] = -8 - Math.random() * 40;
   }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const stars = new THREE.Points(geo, new THREE.PointsMaterial({
+    map: dot, size: 0.28, sizeAttenuation: true, transparent: true, opacity: 0.38,
+    color: 0xa79fc2, blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  scene.add(stars);
 
-  const RIBBONS = [
-    { y: 4.5,  z: -26, rotX: -1.28, op: 0.34, ph: 0.0, c: ['#6f5bd0', '#2e8fb8', '#b06ab3'] },
-    { y: 0.5,  z: -19, rotX: -1.22, op: 0.42, ph: 2.1, c: ['#7c6bd6', '#3fb9d8', '#8b5cf6'] },
-    { y: -3.2, z: -13, rotX: -1.15, op: 0.38, ph: 4.2, c: ['#8b5cf6', '#22d3ee', '#d77bb0'] },
-    { y: 2.2,  z: -8,  rotX: -1.05, op: 0.30, ph: 1.2, c: ['#a78bfa', '#67e8f9', '#f0abdc'] },
-    { y: -6.0, z: -33, rotX: -1.30, op: 0.26, ph: 5.3, c: ['#5b4bc4', '#22889f', '#9d5b8f'] }
-  ];
-  const geo = new THREE.PlaneGeometry(95, 13, NARROW ? 90 : 150, NARROW ? 14 : 22);
-  RIBBONS.forEach(r => {
-    const m = new THREE.Mesh(geo, ribbonMat(r.c[0], r.c[1], r.c[2], r.op, r.ph));
-    m.position.set(0, r.y, r.z);
-    m.rotation.x = r.rotX;
-    scene.add(m);
-  });
-
-  function glowTexture(){
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = 256;
-    const x = cv.getContext('2d');
-    const g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
-    g.addColorStop(0, 'rgba(255,255,255,0.85)');
-    g.addColorStop(0.4, 'rgba(255,255,255,0.25)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g;
-    x.fillRect(0, 0, 256, 256);
-    return new THREE.CanvasTexture(cv);
-  }
-
-  const glowTex = glowTexture();
-  [['#8b5cf6', -14, 9, -30, 46], ['#22d3ee', 16, -7, -24, 38], ['#f472b6', 4, 12, -36, 52]].forEach(g => {
+  [['#8b5cf6', -18, 10, -26, 44], ['#22d3ee', 20, -9, -22, 36]].forEach(g => {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTex, color: g[0], transparent: true, opacity: 0.10,
+      map: dot, color: g[0], transparent: true, opacity: 0.07,
       blending: THREE.AdditiveBlending, depthWrite: false
     }));
     s.position.set(g[1], g[2], g[3]);
     s.scale.setScalar(g[4]);
     scene.add(s);
   });
-
-  function dustTexture(){
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = 64;
-    const x = cv.getContext('2d');
-    const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(0.35, 'rgba(255,255,255,0.55)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g;
-    x.fillRect(0, 0, 64, 64);
-    return new THREE.CanvasTexture(cv);
-  }
-
-  const DUST_N = NARROW ? 120 : 260;
-  const dGeo = new THREE.BufferGeometry();
-  const dPos = new Float32Array(DUST_N * 3);
-  const dSpd = new Float32Array(DUST_N);
-  for(let i = 0; i < DUST_N; i++){
-    dPos[i * 3] = (Math.random() * 2 - 1) * 34;
-    dPos[i * 3 + 1] = (Math.random() * 2 - 1) * 18;
-    dPos[i * 3 + 2] = -2 - Math.random() * 34;
-    dSpd[i] = 0.15 + Math.random() * 0.35;
-  }
-  dGeo.setAttribute('position', new THREE.BufferAttribute(dPos, 3));
-  const dust = new THREE.Points(dGeo, new THREE.PointsMaterial({
-    map: dustTexture(), size: 0.55, sizeAttenuation: true, transparent: true, opacity: 0.32,
-    color: 0xcfc6ee, blending: THREE.AdditiveBlending, depthWrite: false
-  }));
-  scene.add(dust);
-
-  const starGeo = new THREE.BufferGeometry();
-  const STAR_N = NARROW ? 300 : 700;
-  const sPos = new Float32Array(STAR_N * 3);
-  for(let i = 0; i < STAR_N; i++){
-    sPos[i * 3] = (Math.random() * 2 - 1) * 50;
-    sPos[i * 3 + 1] = (Math.random() * 2 - 1) * 28;
-    sPos[i * 3 + 2] = -20 - Math.random() * 70;
-  }
-  starGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
-  const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
-    map: dustTexture(), size: 0.3, sizeAttenuation: true, transparent: true, opacity: 0.4,
-    color: 0xaaa3c9, blending: THREE.AdditiveBlending, depthWrite: false
-  }));
-  scene.add(stars);
-
-  const pointer = { x: 0, y: 0 };
-  window.addEventListener('pointermove', e => {
-    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
-    pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
-  }, { passive: true });
 
   function resize(){
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -222,32 +62,209 @@ function buildScene(){
   window.addEventListener('resize', resize);
 
   const clock = new THREE.Clock();
-
   function tick(){
     const t = clock.getElapsedTime();
-    uTime.value = t;
-    camera.position.x += (pointer.x * 0.9 - camera.position.x) * 0.03;
-    camera.position.y += (1.6 - pointer.y * 0.5 - camera.position.y) * 0.03;
-    camera.lookAt(pointer.x * 0.6, -pointer.y * 0.35, -10);
-    const arr = dGeo.attributes.position.array;
-    for(let i = 0; i < DUST_N; i++){
-      arr[i * 3 + 1] += dSpd[i] * 0.008;
-      arr[i * 3] += Math.sin(t * 0.2 + i) * 0.0022;
-      if(arr[i * 3 + 1] > 19) arr[i * 3 + 1] = -19;
-    }
-    dGeo.attributes.position.needsUpdate = true;
-    stars.rotation.z = t * 0.004;
+    stars.rotation.z = t * 0.005;
+    stars.position.y = Math.sin(t * 0.08) * 0.6;
     renderer.render(scene, camera);
   }
-
-  if(REDUCED){
-    tick();
-  } else {
-    renderer.setAnimationLoop(tick);
-  }
+  if(REDUCED) tick(); else renderer.setAnimationLoop(tick);
 }
 
-try { buildScene(); } catch(err){ console.error('WebGL scene failed', err); }
+function editorTexture(){
+  const cv = document.createElement('canvas');
+  cv.width = 1024; cv.height = 640;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#0c0913'; x.fillRect(0, 0, 1024, 640);
+  x.fillStyle = '#141021'; x.fillRect(0, 0, 1024, 52);
+  ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => {
+    x.fillStyle = c; x.beginPath(); x.arc(32 + i * 26, 26, 8, 0, 7); x.fill();
+  });
+  x.fillStyle = '#241d3a'; x.fillRect(64, 52, 2, 588);
+  let seed = 42;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  const words = ['const', 'model', 'train', 'data', 'render', 'await', 'return', 'app', 'props', 'state'];
+  const cols = ['#c4b5fd', '#7dd3fc', '#f0abdc', '#e2e0f0', '#86efac'];
+  x.font = '600 22px "JetBrains Mono", monospace';
+  for(let i = 0; i < 16; i++){
+    const y = 96 + i * 34;
+    x.fillStyle = '#4a4366';
+    x.fillText(String(i + 1).padStart(2, ' '), 20, y);
+    let cx = 84;
+    const tokens = 2 + Math.floor(rnd() * 4);
+    for(let tk = 0; tk < tokens && cx < 930; tk++){
+      const w = 46 + rnd() * 130;
+      x.fillStyle = cols[Math.floor(rnd() * cols.length)];
+      if(rnd() < 0.42){
+        x.fillText(words[Math.floor(rnd() * words.length)], cx, y);
+      } else {
+        x.globalAlpha = 0.72;
+        x.fillRect(cx, y - 17, w, 20);
+        x.globalAlpha = 1;
+      }
+      cx += w + 20;
+    }
+  }
+  x.fillStyle = 'rgba(196,181,253,0.95)';
+  x.fillRect(84, 96 + 9 * 34 - 17, 3, 23);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 4;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function keysTexture(){
+  const cv = document.createElement('canvas');
+  cv.width = 1024; cv.height = 688;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#110d1b'; x.fillRect(0, 0, 1024, 688);
+  const kw = 62, kh = 52, gap = 10;
+  const cols = 13, rows = 5;
+  const totalW = cols * kw + (cols - 1) * gap;
+  const startX = (1024 - totalW) / 2;
+  for(let r = 0; r < rows; r++){
+    for(let c = 0; c < cols; c++){
+      const kx = startX + c * (kw + gap);
+      const ky = 36 + r * (kh + gap);
+      x.fillStyle = '#1d1730';
+      x.beginPath();
+      if(x.roundRect) x.roundRect(kx, ky, kw, kh, 9); else x.rect(kx, ky, kw, kh);
+      x.fill();
+      x.fillStyle = 'rgba(255,255,255,0.05)';
+      x.fillRect(kx + 4, ky + 3, kw - 8, 3);
+    }
+  }
+  const sy = 36 + rows * (kh + gap);
+  x.fillStyle = '#1d1730';
+  x.beginPath();
+  const sw = totalW * 0.46;
+  const sx = (1024 - sw) / 2;
+  if(x.roundRect) x.roundRect(sx, sy, sw, kh, 9); else x.rect(sx, sy, sw, kh);
+  x.fill();
+  const pw = totalW * 0.4, ph = 120;
+  const px = (1024 - pw) / 2, py = sy + kh + 26;
+  x.strokeStyle = '#2a2145'; x.lineWidth = 3;
+  x.beginPath();
+  if(x.roundRect) x.roundRect(px, py, pw, ph, 12); else x.rect(px, py, pw, ph);
+  x.stroke();
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 4;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function initLaptop(){
+  const canvas = document.getElementById('laptopCanvas');
+  const wrap = canvas ? canvas.parentElement : null;
+  if(!canvas || !wrap) return;
+  let renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  }catch(err){ return; }
+  renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
+  camera.position.set(0, 1.4, 8.6);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.AmbientLight(0x2e2748, 2.2));
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  key.position.set(3, 6, 5);
+  scene.add(key);
+  const rimV = new THREE.PointLight(0x8b5cf6, 42, 30, 2);
+  rimV.position.set(-5, 2.5, 3);
+  scene.add(rimV);
+  const rimC = new THREE.PointLight(0x22d3ee, 20, 26, 2);
+  rimC.position.set(5, -1, 3.5);
+  scene.add(rimC);
+
+  const dark = new THREE.MeshStandardMaterial({ color: 0x17121f, roughness: 0.55, metalness: 0.45 });
+  const lid = new THREE.MeshStandardMaterial({ color: 0x1a1426, roughness: 0.5, metalness: 0.5 });
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.16, 2.35),
+    [dark, dark, new THREE.MeshStandardMaterial({ map: keysTexture(), roughness: 0.7, metalness: 0.2 }), dark, dark, dark]);
+  const screenPivot = new THREE.Group();
+  screenPivot.position.set(0, 0.05, -1.14);
+  const screenMat = new THREE.MeshBasicMaterial({ map: editorTexture() });
+  const screen = new THREE.Mesh(new THREE.BoxGeometry(3.5, 2.25, 0.09),
+    [lid, lid, lid, lid, screenMat, lid]);
+  screen.position.y = 1.14;
+  screenPivot.add(screen);
+  screenPivot.rotation.x = -0.28;
+  const under = new THREE.Mesh(new THREE.BoxGeometry(3.52, 0.02, 2.37),
+    new THREE.MeshBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending }));
+  under.position.y = -0.09;
+
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: spriteTexture([[0, 'rgba(139,92,246,0.55)'], [1, 'rgba(139,92,246,0)']]),
+    transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  glow.position.set(0, -0.7, -0.4);
+  glow.scale.set(7, 3, 1);
+
+  const laptop = new THREE.Group();
+  laptop.add(base, screenPivot, under, glow);
+  if(window.innerWidth > 860) laptop.position.x = 0.4;
+  laptop.rotation.x = 0.34;
+  scene.add(laptop);
+
+  let targetRY = -0.5, curRY = -0.5, velY = 0;
+  let targetRX = 0.34, dragging = false, lastX = 0, lastY = 0, downX = 0, downY = 0, lastInteract = 0;
+
+  canvas.addEventListener('pointerdown', e => {
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    downX = e.clientX; downY = e.clientY;
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    if(!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    targetRY += dx * 0.007;
+    velY = dx * 0.007;
+    targetRX = Math.max(-0.15, Math.min(0.75, targetRX + dy * 0.004));
+    lastInteract = performance.now();
+  });
+  window.addEventListener('pointerup', e => {
+    if(!dragging) return;
+    dragging = false;
+    if(Math.hypot(e.clientX - downX, e.clientY - downY) < 5) velY += 0.09;
+    lastInteract = performance.now();
+  });
+
+  function resize(){
+    const w = wrap.clientWidth || 1, h = wrap.clientHeight || 1;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const clock = new THREE.Clock();
+  function tick(){
+    const t = clock.getElapsedTime();
+    if(!dragging){
+      targetRY += velY;
+      velY *= 0.94;
+      if(performance.now() - lastInteract > 2200 && Math.abs(velY) < 0.002) targetRY += 0.0035;
+    }
+    curRY += (targetRY - curRY) * 0.12;
+    laptop.rotation.y = curRY;
+    laptop.rotation.x += (targetRX - laptop.rotation.x) * 0.1;
+    laptop.position.y = Math.sin(t * 0.8) * 0.12;
+    rimV.intensity = 42 + Math.sin(t * 1.1) * 6;
+    renderer.render(scene, camera);
+  }
+  if(REDUCED){ tick(); } else { renderer.setAnimationLoop(tick); }
+}
+
+try { initBackground(); } catch(err){ console.error(err); }
+try { initLaptop(); } catch(err){ console.error(err); }
 
 if(window.matchMedia('(pointer: fine)').matches && !REDUCED){
   document.querySelectorAll('.proj-card, .skill-card, .cert-card, .fact-card').forEach(card => {

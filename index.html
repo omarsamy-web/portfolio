@@ -13,11 +13,11 @@
 </script>
 <style>
   :root{
-    --bg:#0a0814;
-    --bg-alt:#110c1f;
-    --card:#161027;
-    --card-hover:#1c1530;
-    --border:#2a2140;
+    --bg:#050409;
+    --bg-alt:#0b0813;
+    --card:#0e0a18;
+    --card-hover:#151024;
+    --border:#231c36;
     --border-soft:#1e1730;
     --text:#f2eefc;
     --text-muted:#a79fc2;
@@ -57,108 +57,98 @@
   .navbar{
     position:sticky; top:0; z-index:50;
     display:flex; justify-content:center;
-    padding:18px 20px;
-    background:linear-gradient(180deg, rgba(10,8,20,0.92), rgba(10,8,20,0.7));
+    padding:16px 24px;
+    background:linear-gradient(180deg, rgba(5,4,9,0.9), rgba(5,4,9,0.55));
     backdrop-filter:blur(10px);
   }
-  .nav-pill{
-    display:flex; align-items:center; gap:6px;
-    background:rgba(255,255,255,0.04);
-    border:1px solid var(--border);
-    border-radius:999px;
-    padding:8px 10px 8px 18px;
-    max-width:100%;
+  .nav-inner{
+    width:100%; max-width:1080px;
+    display:flex; align-items:center; gap:20px;
   }
-  .nav-logo{
-    font-family:var(--display); font-weight:700; font-size:15px;
-    margin-right:14px; white-space:nowrap;
-  }
-  .nav-links{display:flex; gap:2px; flex-wrap:wrap;}
+  .nav-logo{font-family:var(--display); font-weight:700; font-size:17px; white-space:nowrap;}
+  .nav-links{display:flex; gap:4px; flex-wrap:wrap; margin-left:auto;}
   .nav-links a{
-    font-size:13px; color:var(--text-muted);
-    padding:8px 14px; border-radius:999px;
-    transition:background .15s, color .15s;
+    font-size:13.5px; color:var(--text-muted);
+    padding:8px 13px; border-radius:999px;
+    transition:color .15s, background .15s;
     white-space:nowrap;
   }
-  .nav-links a:hover, .nav-links a.active{background:var(--card-hover); color:var(--text);}
-  @media (max-width:640px){
-    .nav-links a{padding:7px 10px; font-size:12px;}
-    .nav-pill{padding:7px 8px 7px 14px;}
+  .nav-links a:hover, .nav-links a.active{color:var(--text); background:rgba(255,255,255,0.05);}
+  .nav-icons{display:flex; gap:8px; margin-left:8px;}
+  .nav-icons a{
+    width:34px; height:34px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--border); color:var(--text-muted);
+    transition:color .15s, border-color .15s, transform .15s;
   }
-  @media (max-width:480px){
-    .nav-links a:nth-child(5), .nav-links a:nth-child(6){display:none;}
-  }
+  .nav-icons a:hover{color:var(--text); border-color:var(--violet); transform:translateY(-1px);}
+  .nav-icons svg{width:15px; height:15px; fill:currentColor;}
+  @media (max-width:760px){ .nav-links{display:none;} .nav-icons{margin-left:auto;} }
 
   /* ---------- hero ---------- */
   .hero{
     position:relative;
-    min-height:88vh;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center;
-    padding:60px 20px 40px;
+    min-height:92vh;
+    display:flex; align-items:center;
+    padding:40px 0 70px;
     overflow:hidden;
   }
-  .blob{position:absolute; border-radius:50%; filter:blur(90px); opacity:.35; pointer-events:none;}
-  .blob1{width:420px; height:420px; background:var(--violet); top:-120px; left:-100px;}
-  .blob2{width:380px; height:380px; background:var(--cyan); bottom:-140px; right:-100px;}
-  #neuralCanvas{position:absolute; inset:0; width:100%; height:100%; opacity:.5; pointer-events:none;}
-
-  .badge{
+  #neuralCanvas{position:absolute; inset:0; width:100%; height:100%; opacity:.9; pointer-events:none;}
+  .hero-grid{
     position:relative; z-index:1;
-    display:inline-flex; align-items:center; gap:8px;
-    background:rgba(139,92,246,0.12);
-    border:1px solid rgba(139,92,246,0.35);
+    display:grid; grid-template-columns:1.02fr .98fr;
+    gap:30px; align-items:center; width:100%;
+  }
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr; gap:8px;}
+    .hero-stage{height:300px;}
+  }
+  .hero-id{display:flex; align-items:center; gap:12px; margin-bottom:22px;}
+  .hero-avatar{width:44px; height:44px; border-radius:50%; border:2px solid var(--border); object-fit:cover; display:block;}
+  .hero-eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:2.5px;
     color:var(--violet-light);
-    font-size:13px; font-weight:500;
-    padding:7px 16px; border-radius:999px;
-    margin-bottom:26px;
   }
   .hero h1{
-    position:relative; z-index:1;
     font-family:var(--display); font-weight:800;
-    font-size:clamp(38px, 8vw, 74px);
-    letter-spacing:-1px;
-    margin-bottom:6px;
+    font-size:clamp(52px, 9vw, 96px);
+    letter-spacing:-2px; line-height:1;
+    margin-bottom:18px;
   }
-  .typing-line{
-    position:relative; z-index:1;
-    font-family:var(--display); font-weight:600;
-    font-size:clamp(20px, 4vw, 30px);
-    color:var(--text-muted);
-    margin-bottom:22px;
-    min-height:40px;
+  .hero-sub{
+    max-width:480px; color:var(--text-muted); font-size:16.5px;
+    margin-bottom:30px;
   }
-  .typing-line .fixed{color:var(--text);}
-  .typing-line .typed{color:var(--cyan);}
-  .cursor{display:inline-block; width:3px; height:1em; background:var(--cyan); vertical-align:middle; margin-left:2px; animation:blink 1s step-end infinite;}
-  @keyframes blink{50%{opacity:0;}}
-
-  .hero p.sub{
-    position:relative; z-index:1;
-    max-width:560px; color:var(--text-muted); font-size:16px; margin-bottom:34px;
+  .hero-sub .hl{color:var(--violet-light); font-weight:600;}
+  .hero-actions{display:flex; flex-wrap:wrap; gap:12px;}
+  .hero-stage{position:relative; height:520px;}
+  #laptopCanvas{width:100%; height:100%; display:block; cursor:grab; touch-action:none;}
+  #laptopCanvas:active{cursor:grabbing;}
+  .drag-hint{
+    position:absolute; right:6px; bottom:2px;
+    font-family:var(--mono); font-size:10px; letter-spacing:1.5px;
+    color:var(--text-dim); pointer-events:none;
   }
-  .hero-actions{position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-bottom:50px;}
+  .scroll-hint{
+    position:absolute; left:50%; bottom:16px; transform:translateX(-50%); z-index:1;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:3px; color:var(--text-dim);
+    animation:scrollDown 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollDown{0%,100%{opacity:.25;} 50%{opacity:.9;}}
 
   .btn{
-    font-family:var(--body); font-weight:600; font-size:14px;
-    padding:13px 24px; border-radius:12px;
+    font-family:var(--body); font-weight:600; font-size:13.5px;
+    padding:12px 22px; border-radius:999px;
     border:1px solid var(--border);
     display:inline-flex; align-items:center; gap:8px;
-    cursor:pointer; transition:transform .15s, box-shadow .15s, background .15s;
-    background:var(--card);
+    cursor:pointer; transition:transform .15s, background .15s, border-color .15s;
+    background:rgba(255,255,255,0.03);
     color:var(--text);
   }
-  .btn:hover{transform:translateY(-2px);}
-  .btn.primary{background:var(--grad); border:none; color:#0a0814; box-shadow:0 10px 30px -10px rgba(139,92,246,0.6);}
+  .btn:hover{transform:translateY(-2px); border-color:var(--violet);}
+  .btn.primary{background:var(--text); border-color:var(--text); color:#0b0813;}
+  .btn.primary:hover{background:#ffffff;}
   .btn.ghost{background:transparent;}
-
-  .scroll-hint{
-    position:relative; z-index:1;
-    font-family:var(--mono); font-size:11px; color:var(--text-dim);
-    display:flex; flex-direction:column; align-items:center; gap:6px;
-  }
-  .scroll-hint .line{width:1px; height:26px; background:linear-gradient(var(--text-dim), transparent); animation:scrollDown 1.6s ease-in-out infinite;}
-  @keyframes scrollDown{0%{opacity:0; transform:translateY(-6px);} 50%{opacity:1;} 100%{opacity:0; transform:translateY(10px);}}
 
   /* ---------- sections ---------- */
   section{padding:100px 0 20px;}
@@ -312,33 +302,45 @@
 <body>
 
 <div class="navbar">
-  <div class="nav-pill">
-    <a href="#hero" class="nav-logo"><span class="grad-text">OA</span> ✦</a>
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">Omar<span class="grad-text">.</span></a>
     <div class="nav-links">
       <a href="#about" data-target="about">About</a>
-      <a href="#skills" data-target="skills">Skills</a>
+      <a href="#skills" data-target="skills">Stack</a>
       <a href="#projects" data-target="projects">Projects</a>
       <a href="#experience" data-target="experience">Experience</a>
       <a href="#certifications" data-target="certifications">Certs</a>
       <a href="#contact" data-target="contact">Contact</a>
     </div>
+    <div class="nav-icons">
+      <a href="https://github.com/omarsamy-web" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://linkedin.com/in/omar-askar-840263389" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.55V9h3.57v11.45z"/></svg></a>
+    </div>
   </div>
 </div>
 
 <section class="hero" id="hero">
-  <div class="blob blob1"></div>
-  <div class="blob blob2"></div>
   <canvas id="neuralCanvas"></canvas>
-  <div class="badge">✨ Open to Machine Learning opportunities</div>
-  <h1>Omar Askar.</h1>
-  <div class="typing-line"><span class="fixed">I build&nbsp;</span><span class="typed" id="typedText"></span><span class="cursor"></span></div>
-  <p class="sub">Frontend & Python developer studying Computer Science, building responsive web apps and steadily moving into machine learning — through internships, workshops, and real projects.</p>
-  <div class="hero-actions">
-    <a href="#projects" class="btn primary" data-target="projects">View Projects ↓</a>
-    <a href="#contact" class="btn" data-target="contact">Get in touch →</a>
-    <a href="mailto:osamy5599@gmail.com" class="btn ghost">✉ Email me</a>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="hero-id">
+        <img class="hero-avatar" src="https://avatars.githubusercontent.com/omarsamy-web" alt="Omar Askar" referrerpolicy="no-referrer">
+        <span class="hero-eyebrow">● FRONTEND &amp; PYTHON DEVELOPER · AI/ML</span>
+      </div>
+      <h1>Omar.</h1>
+      <p class="hero-sub">I build <span class="hl">fast, responsive</span> web apps and <span class="hl">machine-learning</span> powered products — dashboards, automation tools, and <span class="hl">3D-driven</span> experiences.</p>
+      <div class="hero-actions">
+        <a href="#projects" class="btn primary" data-target="projects">View Projects</a>
+        <a href="#" class="btn" id="downloadCvBtnHero">Download CV</a>
+        <a href="#contact" class="btn" data-target="contact">Contact Me</a>
+      </div>
+    </div>
+    <div class="hero-stage">
+      <canvas id="laptopCanvas"></canvas>
+      <div class="drag-hint">CLICK TO SPIN&nbsp;&nbsp;·&nbsp;&nbsp;DRAG TO SPIN</div>
+    </div>
   </div>
-  <div class="scroll-hint">scroll<div class="line"></div></div>
+  <div class="scroll-hint">SCROLL</div>
 </section>
 
 <section id="about">
@@ -631,26 +633,7 @@
     });
   });
 
-  // typing effect
-  var words = ['web apps.', 'AI-powered tools.', 'machine learning models.'];
-  var el = document.getElementById('typedText');
-  var wi=0, ci=0, deleting=false;
-  function step(){
-    var word = words[wi];
-    if(!deleting){
-      el.textContent = word.slice(0, ci+1);
-      ci++;
-      if(ci===word.length){ deleting=true; setTimeout(step, 1400); return; }
-    } else {
-      el.textContent = word.slice(0, ci-1);
-      ci--;
-      if(ci===0){ deleting=false; wi=(wi+1)%words.length; }
-    }
-    setTimeout(step, deleting?35:65);
-  }
-  step();
-
-  // hero background upgraded to a WebGL scene — see three-scene.js
+  // hero: static tagline (typing effect removed in redesign)
 
   // convert an embedded data: URI to a Blob (avoids browsers blocking direct
   // top-level navigation to data: URLs, which is what broke certificate opening)
@@ -680,7 +663,8 @@
   });
 
   // CV download: build a Blob and trigger a real download
-  document.getElementById('downloadCvBtn').addEventListener('click', function(e){
+  document.querySelectorAll('#downloadCvBtn, #downloadCvBtnHero').forEach(function(cvBtn){
+  cvBtn.addEventListener('click', function(e){
     e.preventDefault();
     try{
       var blob = dataUriToBlob("data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgaHR0cDovL3d3dy5yZXBvcnRsYWIuY29tCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyAvTmFtZSAvRjEgL1N1YnR5cGUgL1R5cGUxIC9UeXBlIC9Gb250Cj4+CmVuZG9iagozIDAgb2JqCjw8Ci9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGQgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YyIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKNCAwIG9iago8PAovQSA8PAovUyAvVVJJIC9UeXBlIC9BY3Rpb24gL1VSSSAoaHR0cHM6Ly9naXRodWIuY29tL29tYXJzYW15LXdlYikKPj4gL0JvcmRlciBbIDAgMCAwIF0gL1JlY3QgWyAxNTIuMTQ1IDY2NiAyNzIuMTc1IDY3OCBdIC9TdWJ0eXBlIC9MaW5rIC9UeXBlIC9Bbm5vdAo+PgplbmRvYmoKNSAwIG9iago8PAovQSA8PAovUyAvVVJJIC9UeXBlIC9BY3Rpb24gL1VSSSAoaHR0cHM6Ly93d3cubGlua2VkaW4uY29tL2luL29tYXItYXNrYXItODQwMjYzMzg5LykKPj4gL0JvcmRlciBbIDAgMCAwIF0gL1JlY3QgWyAzMjMuNjk1IDY2NiA0OTYuNTM1IDY3OCBdIC9TdWJ0eXBlIC9MaW5rIC9UeXBlIC9Bbm5vdAo+PgplbmRvYmoKNiAwIG9iago8PAovQW5ub3RzIFsgNCAwIFIgNSAwIFIgXSAvQ29udGVudHMgMTEgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAxMCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgCiAgL1RyYW5zIDw8Cgo+PiAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNyAwIG9iago8PAovQ29udGVudHMgMTIgMCBSIC9NZWRpYUJveCBbIDAgMCA2MTIgNzkyIF0gL1BhcmVudCAxMCAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKOCAwIG9iago8PAovUGFnZU1vZGUgL1VzZU5vbmUgL1BhZ2VzIDEwIDAgUiAvVHlwZSAvQ2F0YWxvZwo+PgplbmRvYmoKOSAwIG9iago8PAovQXV0aG9yIChcKGFub255bW91c1wpKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwNTE2MjMxMTAzKzAwJzAwJykgL0NyZWF0b3IgKFwodW5zcGVjaWZpZWRcKSkgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwNTE2MjMxMTAzKzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSB3d3cucmVwb3J0bGFiLmNvbSkgCiAgL1N1YmplY3QgKFwodW5zcGVjaWZpZWRcKSkgL1RpdGxlIChcKGFub255bW91c1wpKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjEwIDAgb2JqCjw8Ci9Db3VudCAyIC9LaWRzIFsgNiAwIFIgNyAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjExIDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDE5MTEKPj4Kc3RyZWFtCkdhdD0rOzElIlQnUmYuR2dvJC1UTmJdU0RUTU09U2c4N05TWypXWSNHbkVMXy0rO28tMTVwWVluW2pzI0EmKU9PbyZXTUAsbCskQWgvZVcwNSdaa19TJWlxSW44OF9TaFlaNDkwT0tBUVxmbzo5aUhqQVhoWGRlPUAwRT5KXnMrayVSNXBFJW4xaFw3S1s0MEctJU5lWzskJUNVbi04O0dZS2lLXXMjaFMuVlhmUyI9Im8sV3EubUtSWTlWbT9yJk1RTy1LPzJgNy06KFBYdGI/Q20vIyw2IWR1X0hZJVlQJi8lVkUnMDtzRE5pSTddVTQ/bzRFakI1PjAqNnIiX285ZEJnUHRSUkhMP18oVzo5SUgtXEs0VD5hLXJiRjlcYDU8WWJlbi4/LCU/TkI1PihkM0YmSHVeW11PITQuPmJdYEo9V0phZlxJXVAiVXUqTDtWLW9mLURSbEZecSFcSnFkXnBcYjAwVkAtVjc0R1JKLTI7VVAiSlZVamlxNVA5YkAxM0JhWS9SOjNGLy45RCxBYmQhRmhXLSRyO1I9L1onOCxCbmJRWkJTXWJsTjImLkpqKDhUU0ZpYCF0JWFmWykmM0FDZSpNa2VlMGM1UDxmTzBGRVMhKi5ORzlkKidbRCklNldHUkRRJC1BMio5TW5PPl9nQXQ+dWY4YEQ+b21mZCZxLjJnRzw2QnJHJnFsWUQkWTRpa0YjTm4+VmohNEAoIzNDanFbTlVNXFUhWUwvaFw0N1AwcHQ8LGBoPS42VTE+XWItMzZERF8vbV5WJ0pSJ19NQlpVZDsrT25QXmJCNEFuMz5fJ29tL08icT1nZl0ybjVyT1E1MmdVTz4wPkssLEhGWDhvOUYzSz0hSi9UVGdjLS0qX0o0QVcqPUFbPWNbOj1ITjssJlxRJHM8LTlBWixFODFFbEdvRCZqRDBRM0g1MUVUKklpXV0vWClSIiNnWUJhOW9EQS0wWjNJJ2lOYS4hI08pX1U7VE1hVyw0TFcyQ1lVK19RRkpwZVBUa1lfcG5aRHJDLlxxISlhOVlIRGBNODZhamVVIVMpXEo3K2c3U2gyWTVicVxtQ1tcOiQ7I19FN0VpJT0+SW0tWEtfbVVgX3JFNm41XSkyUiQqWXNHaismR0oyNS5pUE9kW3QrZ01vXzNQQkpdIlYzbVFaPV9ZPjtFc1s/aWlpZT1lbFc7IVZrWC1FWTtFJ3BPdDM+XCk1TEloVCYuPSE7KzBgS04pYl5GKjEzVDAoRl0oZmEqTV9rLGIiQCMuXVIuXDclbXVUQWA6RysoPF5pbFlhZjBiVFZ0VTNuPGtiYy1kVXA3bSdNbEQsby84Nm5OK14qNy9xTEBCZSNhLypWaERZLmZkNENdWzhdbGolaz9YIylLJG5qUGFbLSgvODYxcUxIcXRdY14uMEF1J0YuQjYtZVVwcEBMKjYqcCtBcjllYWxedV1BakU4VkRfT0JGK09oRyJPWmxXTmwnX15oWCkiP2dMWWtfX3V1alBBNFk5Im5LKjpNMltlcWxKJU1Oa2FAMUU2a0BJXFhOJjgrcjB0LEYia0dLND9ocytpOEJZXVdhMGsnM2FoRFI2bi9RaDMudFtrZzxoIUFgJilsUGJCU0FAWDcuc3A3dD5kSy9MPSZrVSw9R0A/J2VdXj0vUEIjUzw/UkhlQnQrLD5dT0ZeWjUpdUNcTE4jUG0oI0wwVDEhb3UqZSEkak0+YjkhUTp0bVlLKi1PO2YoWiw3bmRdODg+TzpAa0Y0JFlMX2EtRiUjMVhcJ2w4YiosU1xwI0xvKWZxLklvWlRiUzYiT18pZzUxZjBILltoIW5VTiNvMlVRc3JDTj9sN19zQSZEMGImPWtzP1RKOkBDX0smdWxEP0VpTGBaaDpHO3BsVUdgPEVVVztjXyZuWioyPzgoKy4vMkEpTy5HW0NNajEuVChSXVVhajtpQ1BXbmY5WU0tTVxuJlBFRz9eRSQjVFhBKmNGaWpDPVMnQF9Vbk5kT2NKKTRGcDNmIXFJZlpZX0MycXBwMChCbTE2YFJpZlxfQ2AzPjVMZiUycUJDdFQyNnNOaldKPFZFNCMqcCInVGsuXSpbPEAkXmtuJzEnJHNtbnA6NnVvSjxtLnI/bCRJLXVDO0ErJkAuMSJSQyFKdCZBWHVFIUk5TWQoKlRFVyhwaFo6YUVPOyNPJipxS0xeVGMwUjMjNUc8UC1rKTw5WlUsI2BtOWFhN1AkbjA+ZEFjITAsMlVeNUlkbWciRDFQKTlIViVmMGYxT3BvWDNLOSxmPiMzYXVtLEdLW0ZiQWlDUz9IKHQ8NCZlaThIQjRIZjw4b1hmSnBTQGZ1LjxOZVA7J24zblBaTWhtJyxcUz0qKC1iRTZJdT47Q1pgW2NsOyIlbTY5LGNdbVdmSiZkUmFhdSw+WUExPFNQUVdrPFFfZDk9IkBtT1ssKDlCPGgtLGVSWGNdUG1XPCZPaClqOzlXc1lybmQlPkhFLUxdVUpAbD4xM1IxY20iTU8/KjBlVTMiZERncWA4M3IoWl1kLytAKWpkNj5+PmVuZHN0cmVhbQplbmRvYmoKMTIgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggOTQ3Cj4+CnN0cmVhbQpHYXNJZTlsSmBOJkFANy5iYylkJDlzP3UtNFZBQT0mdWViOFs/ayw2SFliVENuJHAhcTpubXNhY0U+RF5MZGJqKmJWSmVISShacCNvXz05W0c+XEZyMCZVYV81bnEzXEs7YTpJTFcoOCQoTUE2Q1UqZDAxSjczaUNfMGo4TWQxMVtvJF0mXEpfVzwnKkEuUiZxTzMrKTpzMGtCQDsndVdWQCNjRiJAb29ydUxXKSYjXjNZZzNyNE0mLT5rX0VIIyZ0Y0NHPTkuPTZqalx0K0ZwQEwqbD07LyZrYiFzYV1GLVdIcHBKOEpfSXI4VGtAJmglNC1cMSItVGpiJ0RMTGUzcmRVI2psZDZpcmQnSFYqZ0tES1s7X0wiPWxZJHIiWS1NIUskWXFsPCJ0VWAkMWo9Ny0rWXQuTDokKytoQ2ptI2tEWVdDZExKOT8oOFg/KUE9YCxYOG4iNWBBL1FlbCMpQz1DX15pYCNVdWVoIUttOF9ANTZjUUpQJlwiNydaZj8lYjtYbT44ZEIsZTA6QVBXO20vTl1cYHNtRjNeKyolckQ7T3E+JW5yVCdVTWdrMUxISlU5MTllLERSVjU1OWgodWtJYi5RaT1RRV1NajVULipxZEowdVZicm9kNSpPXE5RWFgqMGoqQ3IqVS0xcyQrMyNsWDs+Yzl0VkY3dUs4ST5vIyU5NF06RmYnQjNWZlIpSjlpV04vUyVLZkg9RTs3cHBkTTRCUTFPbDtAKk11TGRiTmxGIWduNGFmJUZyblVnNmkzbGhVIkdfKWpOQ0c2QVxgUWNSOi4yWDllak5IajlWYFpka0kidSkjLyhrSSs7YT10SiEpSSpXLT8iYUV1PGBHbzw3MFVsV20qbS00a0Q3VWdSL2NOLmdfbkBFQXE6YjQySyVWLClPJklucSE0XGxUIkVCKEUnOzsmNStWRV89MUs9U0E8XidFSFU+VmBlcUhGOWJfKk5hZVRMJlJaKzJrYVpmQj9BLGdGJjlONCFjLiIpRStzbW5dPF0nbjFCTVtaa2JfTmY1SFlbXl5mZFE6YG5GcFJNalM9Z0VKc0dwY2JDXUxZXGA+NzYpPGJKcC5HO0xdN2VHYz8yQ2FGI01zKC9zVmY8ODRIMChIU2BmSWJJJWdocU1CUyVoQU9PSUlQUyhMbyFkW2BXJDMyaEBKXlNrPVhJWWVkZHFwQ1pBImFCISRER3BkOEBKLnE1aFxSbFIvZj9YazhIPGBrKHUrNVhuKjl1LEczQFRqKUp+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDEzCjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA3MyAwMDAwMCBuIAowMDAwMDAwMTE0IDAwMDAwIG4gCjAwMDAwMDAyMjEgMDAwMDAgbiAKMDAwMDAwMDMzMyAwMDAwMCBuIAowMDAwMDAwNTA0IDAwMDAwIG4gCjAwMDAwMDA2OTMgMDAwMDAgbiAKMDAwMDAwMDkxMiAwMDAwMCBuIAowMDAwMDAxMTA3IDAwMDAwIG4gCjAwMDAwMDExNzYgMDAwMDAgbiAKMDAwMDAwMTQ1OSAwMDAwMCBuIAowMDAwMDAxNTI1IDAwMDAwIG4gCjAwMDAwMDM1MjggMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8NTYzYjM3ODBiNTFmOWIxMDkzZDZlOWI4YzJkOTk0NGQ+PDU2M2IzNzgwYjUxZjliMTA5M2Q2ZTliOGMyZDk5NDRkPl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKGh0dHA6Ly93d3cucmVwb3J0bGFiLmNvbSkKCi9JbmZvIDkgMCBSCi9Sb290IDggMCBSCi9TaXplIDEzCj4+CnN0YXJ0eHJlZgo0NTY2CiUlRU9GCg==");
@@ -695,6 +679,7 @@
     }catch(err){
       console.error('Could not download CV', err);
     }
+  });
   });
 })();
 </script>
