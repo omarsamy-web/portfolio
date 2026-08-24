@@ -69,7 +69,7 @@ function buildScene(){
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0a0814, 0.016);
+  scene.fog = new THREE.FogExp2(0x0a0814, 0.013);
 
   const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 200);
   camera.position.set(0, 0, 16);
@@ -100,7 +100,7 @@ function buildScene(){
           vC = color;
           vec4 mv = modelViewMatrix * vec4(position, 1.0);
           float dist = max(-mv.z, 0.001);
-          float tw = 0.6 + 0.4 * sin(uTime * 1.3 + aPhase);
+          float tw = 0.78 + 0.22 * sin(uTime * 0.55 + aPhase);
           gl_PointSize = aSize * uPR * uScale * tw / dist;
           gl_Position = projectionMatrix * mv;
           vA = tw * uAlpha * (1.0 - smoothstep(uFar * 0.24, uFar, dist));
@@ -110,7 +110,7 @@ function buildScene(){
         varying float vA;
         void main(){
           float d = length(gl_PointCoord - vec2(0.5));
-          float a = smoothstep(0.5, 0.05, d) * vA;
+          float a = smoothstep(0.48, 0.12, d) * vA;
           if(a < 0.004) discard;
           gl_FragColor = vec4(vC, a);
         }`
@@ -151,14 +151,15 @@ function buildScene(){
     return group;
   };
 
-  const STAR_N = NARROW ? 650 : 1600;
+  const SOFT = c => c.clone().multiplyScalar(0.7);
+  const STAR_N = NARROW ? 550 : 1350;
   const starData = randPoints(
     STAR_N,
     () => [(Math.random() * 2 - 1) * 46, (Math.random() * 2 - 1) * 27, 25 - Math.random() * 420],
-    [LILAC, VIOLET, CYAN, new THREE.Color(0xbfb8d9)],
-    0.04, 0.13
+    [SOFT(LILAC), SOFT(VIOLET), SOFT(CYAN), new THREE.Color(0x8f88a8)],
+    0.03, 0.09
   );
-  scene.add(makePoints(...starData, 60, 0.8));
+  scene.add(makePoints(...starData, 60, 0.5));
 
   zoneAt(0, group => {
     const BOUNDS = { x: 24, y: 14, z: 12 };
@@ -166,19 +167,19 @@ function buildScene(){
     const HUBS = Math.min(90, COUNT);
     const pos = new Float32Array(COUNT * 3), col = new Float32Array(COUNT * 3),
           siz = new Float32Array(COUNT), vel = new Float32Array(COUNT * 3);
-    const pal = [VIOLET, VIOLET, CYAN, LILAC];
+    const pal = [SOFT(VIOLET), SOFT(VIOLET), SOFT(CYAN), SOFT(LILAC)];
     for(let i = 0; i < COUNT; i++){
       pos[i * 3] = (Math.random() * 2 - 1) * BOUNDS.x;
       pos[i * 3 + 1] = (Math.random() * 2 - 1) * BOUNDS.y;
       pos[i * 3 + 2] = (Math.random() * 2 - 1) * BOUNDS.z;
-      const c = Math.random() < 0.12 ? PINK : pal[(Math.random() * pal.length) | 0];
+      const c = Math.random() < 0.12 ? SOFT(PINK) : pal[(Math.random() * pal.length) | 0];
       col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
-      siz[i] = 0.05 + Math.random() * 0.11;
-      vel[i * 3] = (Math.random() - 0.5) * 0.006;
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.006;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.004;
+      siz[i] = 0.04 + Math.random() * 0.08;
+      vel[i * 3] = (Math.random() - 0.5) * 0.0035;
+      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.0035;
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.0025;
     }
-    group.add(makePoints(pos, col, siz, 38, 0.85));
+    group.add(makePoints(pos, col, siz, 38, 0.5));
 
     const seg = [];
     outer:
@@ -194,13 +195,13 @@ function buildScene(){
     const lGeo = new THREE.BufferGeometry();
     lGeo.setAttribute('position', new THREE.Float32BufferAttribute(seg, 3));
     group.add(new THREE.LineSegments(lGeo, new THREE.LineBasicMaterial({
-      color: 0x8b5cf6, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false
+      color: 0x8b5cf6, transparent: true, opacity: 0.09, blending: THREE.AdditiveBlending, depthWrite: false
     })));
 
     const wm = (hex, op) => new THREE.MeshBasicMaterial({ color: hex, wireframe: true, transparent: true, opacity: op });
-    const a = new THREE.Mesh(new THREE.IcosahedronGeometry(6.5, 1), wm(0x8b5cf6, 0.07)); a.position.set(-15, 5, -9);
-    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(4.2, 1), wm(0x22d3ee, 0.06)); b.position.set(16, -5, -7);
-    const c = new THREE.Mesh(new THREE.TorusKnotGeometry(3, 0.85, 120, 14), wm(0xf472b6, 0.05)); c.position.set(2, -1, -17);
+    const a = new THREE.Mesh(new THREE.IcosahedronGeometry(6.5, 1), wm(0x8b5cf6, 0.04)); a.position.set(-15, 5, -9);
+    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(4.2, 1), wm(0x22d3ee, 0.035)); b.position.set(16, -5, -7);
+    const c = new THREE.Mesh(new THREE.TorusKnotGeometry(3, 0.85, 120, 14), wm(0xf472b6, 0.03)); c.position.set(2, -1, -17);
     group.add(a, b, c);
 
     return { update(t){
@@ -212,35 +213,35 @@ function buildScene(){
       }
       const attr = group.children[0].geometry.attributes.position;
       attr.needsUpdate = true;
-      a.rotation.y = t * 0.06; a.rotation.x = t * 0.03;
-      b.rotation.y = -t * 0.05; b.rotation.z = t * 0.04;
-      c.rotation.x = t * 0.07; c.rotation.y = t * 0.09;
-      group.rotation.y = Math.sin(t * 0.05) * 0.04;
+      a.rotation.y = t * 0.035; a.rotation.x = t * 0.02;
+      b.rotation.y = -t * 0.03; b.rotation.z = t * 0.025;
+      c.rotation.x = t * 0.04; c.rotation.y = t * 0.05;
+      group.rotation.y = Math.sin(t * 0.04) * 0.025;
     }};
   });
 
   zoneAt(-60, group => {
     const outer = new THREE.Mesh(new THREE.IcosahedronGeometry(5.5, 2),
-      new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.08 }));
+      new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.045 }));
     const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(2.3, 1),
-      new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true, transparent: true, opacity: 0.11 }));
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true, transparent: true, opacity: 0.065 }));
     const ring = new THREE.Mesh(new THREE.TorusGeometry(7.5, 0.05, 8, 90),
-      new THREE.MeshBasicMaterial({ color: 0xc4b5fd, transparent: true, opacity: 0.16 }));
+      new THREE.MeshBasicMaterial({ color: 0xc4b5fd, transparent: true, opacity: 0.1 }));
     ring.rotation.x = Math.PI / 2.3;
     const ring2 = ring.clone();
     ring2.material = ring.material.clone(); ring2.material.color.set(0xf472b6);
     ring2.scale.setScalar(0.72); ring2.rotation.set(Math.PI / 1.7, 0.5, 0);
     group.add(outer, inner, ring, ring2);
     return { update(t){
-      outer.rotation.y = t * 0.05; outer.rotation.x = Math.sin(t * 0.1) * 0.2;
-      inner.rotation.y = -t * 0.22; inner.rotation.z = t * 0.08;
-      ring.rotation.z = t * 0.04; ring2.rotation.z = -t * 0.06;
+      outer.rotation.y = t * 0.03; outer.rotation.x = Math.sin(t * 0.07) * 0.12;
+      inner.rotation.y = -t * 0.13; inner.rotation.z = t * 0.05;
+      ring.rotation.z = t * 0.025; ring2.rotation.z = -t * 0.04;
     }};
   });
 
   zoneAt(-120, group => {
     const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.4, 1),
-      new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true, transparent: true, opacity: 0.14 }));
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true, transparent: true, opacity: 0.085 }));
     group.add(core);
     const kinds = [
       () => new THREE.TetrahedronGeometry(1),
@@ -256,20 +257,20 @@ function buildScene(){
       pivot.rotation.z = (i - 2) * 0.35;
       pivot.rotation.x = (i % 2 ? 1 : -1) * 0.25;
       const m = new THREE.Mesh(kinds[i](), new THREE.MeshBasicMaterial({
-        color: colors[i], wireframe: true, transparent: true, opacity: 0.28
+        color: colors[i], wireframe: true, transparent: true, opacity: 0.17
       }));
       m.position.x = 6.5 + i * 0.9;
       pivot.add(m);
       group.add(pivot);
-      sats.push({ pivot, m, speed: 0.24 + i * 0.05, phase: i * 1.3 });
+      sats.push({ pivot, m, speed: 0.15 + i * 0.03, phase: i * 1.3 });
     }
     return { update(t){
-      core.rotation.y = t * 0.2; core.rotation.x = t * 0.1;
+      core.rotation.y = t * 0.12; core.rotation.x = t * 0.06;
       sats.forEach(s => {
         s.pivot.rotation.y = t * s.speed + s.phase;
-        s.m.rotation.x = t * 0.5; s.m.rotation.y = t * 0.4;
+        s.m.rotation.x = t * 0.3; s.m.rotation.y = t * 0.25;
       });
-      group.rotation.y = Math.sin(t * 0.07) * 0.1;
+      group.rotation.y = Math.sin(t * 0.05) * 0.06;
     }};
   });
 
@@ -296,7 +297,7 @@ function buildScene(){
       tex.anisotropy = 4;
       const mesh = new THREE.Mesh(
         new THREE.PlaneGeometry(6.2, 3.88),
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.95, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.88, side: THREE.DoubleSide })
       );
       mesh.position.x = (i - 2) * 6.6;
       mesh.rotation.y = (i - 2) * -0.14;
@@ -305,10 +306,10 @@ function buildScene(){
     });
     return { update(t){
       panels.forEach((p, i) => {
-        p.position.y = Math.sin(t * 0.8 + i * 1.1) * 0.45;
-        p.rotation.z = Math.sin(t * 0.5 + i) * 0.02;
+        p.position.y = Math.sin(t * 0.5 + i * 1.1) * 0.28;
+        p.rotation.z = Math.sin(t * 0.3 + i) * 0.02;
       });
-      group.rotation.y = Math.sin(t * 0.06) * 0.05;
+      group.rotation.y = Math.sin(t * 0.04) * 0.035;
     }};
   });
 
@@ -325,13 +326,13 @@ function buildScene(){
     }
     const hGeo = new THREE.BufferGeometry().setFromPoints(helixPts);
     group.add(new THREE.Line(hGeo, new THREE.LineBasicMaterial({
-      color: 0x8b5cf6, transparent: true, opacity: 0.38, blending: THREE.AdditiveBlending
+      color: 0x8b5cf6, transparent: true, opacity: 0.24, blending: THREE.AdditiveBlending
     })));
     const n = dots.length / 3;
     group.add(makePoints(new Float32Array(dots), new Float32Array(Array.from({ length: n }, (_, i) => {
       const c = i % 2 ? CYAN : PINK; return [c.r, c.g, c.b];
-    }).flat()), new Float32Array(Array.from({ length: n }, () => 0.09)), 38, 0.9));
-    return { update(t){ group.rotation.y = t * 0.16; } };
+    }).flat()), new Float32Array(Array.from({ length: n }, () => 0.07)), 38, 0.55));
+    return { update(t){ group.rotation.y = t * 0.09; } };
   });
 
   zoneAt(-300, group => {
@@ -344,14 +345,14 @@ function buildScene(){
       },
       [PINK, LILAC, VIOLET], 0.06, 0.14
     );
-    group.add(makePoints(...shell, 38, 0.85));
+    group.add(makePoints(...shell, 38, 0.5));
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(2.4),
-      new THREE.MeshBasicMaterial({ color: 0xc4b5fd, wireframe: true, transparent: true, opacity: 0.13 }));
+      new THREE.MeshBasicMaterial({ color: 0xc4b5fd, wireframe: true, transparent: true, opacity: 0.075 }));
     group.add(gem);
     return { update(t){
-      gem.rotation.y = t * 0.25; gem.rotation.x = t * 0.12;
-      gem.scale.setScalar(1 + Math.sin(t * 1.4) * 0.06);
-      group.rotation.y = Math.sin(t * 0.05) * 0.12;
+      gem.rotation.y = t * 0.15; gem.rotation.x = t * 0.08;
+      gem.scale.setScalar(1 + Math.sin(t * 0.9) * 0.035);
+      group.rotation.y = Math.sin(t * 0.04) * 0.07;
     }};
   });
 
@@ -361,21 +362,21 @@ function buildScene(){
       const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
       return [r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)];
     }, [CYAN, LILAC], 0.07, 0.15);
-    group.add(makePoints(...ball, 38, 1));
+    group.add(makePoints(...ball, 38, 0.65));
     const rings = [3, 4.6, 6.2].map((r, i) => {
       const m = new THREE.Mesh(new THREE.TorusGeometry(r, 0.045, 8, 90),
         new THREE.MeshBasicMaterial({
-          color: [0x8b5cf6, 0x22d3ee, 0xf472b6][i], transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending
+          color: [0x8b5cf6, 0x22d3ee, 0xf472b6][i], transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending
         }));
       group.add(m);
       return m;
     });
     return { update(t){
       rings.forEach((m, i) => {
-        m.rotation.x = Math.PI / 2 + Math.sin(t * 0.4 + i) * 0.3;
-        m.rotation.z = t * (0.1 + i * 0.06);
-        m.scale.setScalar(1 + Math.sin(t * 1.6 + i * 2) * 0.05);
-        m.material.opacity = 0.2 + 0.18 * Math.abs(Math.sin(t * 1.6 + i * 2 + 1));
+        m.rotation.x = Math.PI / 2 + Math.sin(t * 0.25 + i) * 0.3;
+        m.rotation.z = t * (0.06 + i * 0.035);
+        m.scale.setScalar(1 + Math.sin(t * 1.1 + i * 2) * 0.03);
+        m.material.opacity = 0.12 + 0.1 * Math.abs(Math.sin(t * 1.1 + i * 2 + 1));
       });
     }};
   });
@@ -411,12 +412,12 @@ function buildScene(){
   function tick(){
     const t = clock.getElapsedTime();
     G.uTime.value = t;
-    cur += (target - cur) * (REDUCED ? 1 : 0.06);
+    cur += (target - cur) * (REDUCED ? 1 : 0.045);
     const cz = 16 - cur * TRAVEL;
-    camera.position.x += (pointer.x * 1.8 - camera.position.x) * 0.04;
-    camera.position.y += (-pointer.y * 1.1 - camera.position.y) * 0.04;
+    camera.position.x += (pointer.x * 1.0 - camera.position.x) * 0.04;
+    camera.position.y += (-pointer.y * 0.62 - camera.position.y) * 0.04;
     camera.position.z = cz;
-    camera.lookAt(pointer.x * 2.2, -pointer.y * 1.3, cz - 12);
+    camera.lookAt(pointer.x * 1.2, -pointer.y * 0.75, cz - 12);
     zones.forEach(zn => {
       zn.group.visible = Math.abs(cz - (zn.z + 16)) < 85;
       if(zn.group.visible && zn.update) zn.update(t);
